@@ -84,6 +84,13 @@ st.markdown("""
         border-radius: 0.5rem;
         margin: 0.5rem 0;
     }
+    .xml-box {
+        background: #e1f5fe;
+        padding: 1.2rem;
+        border-left: 5px solid #03a9f4;
+        border-radius: 0.4rem;
+        margin: 1rem 0;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -223,6 +230,39 @@ REFERENCES = {
         "doi": "cs/9605103",
         "key_finding": "5-fold CV recommended for small datasets",
         "relevance": "Validation methodology for our system"
+    },
+    36: {
+        "author": "Lin, J., Song, J., Zhou, Z., et al.",
+        "year": 2022,
+        "title": "MOPRD: A Multidisciplinary Open Peer Review Dataset",
+        "journal": "arXiv",
+        "vol": "2212.04972",
+        "pages": "1-32",
+        "doi": "arXiv:2212.04972",
+        "key_finding": "6,578 papers with complete review history; XML conversion via GROBID; t_sum, t_mr, t_full subsetting",
+        "relevance": "Gold standard dataset; XML workflow methodology we're adopting"
+    },
+    37: {
+        "author": "Lopez, P.",
+        "year": 2009,
+        "title": "GROBID: Combining Automatic Bibliographic Data Recognition and Term Extraction for Scholarship Publications",
+        "journal": "ECDL",
+        "vol": "2009",
+        "pages": "473-474",
+        "doi": "10.1007/978-3-642-04346-8_62",
+        "key_finding": "PDF to structured XML conversion (JATS-like) with 98.6% accuracy",
+        "relevance": "Tool for converting our PDFs to structured XML format for feature extraction"
+    },
+    38: {
+        "author": "Manning, C. D., et al.",
+        "year": 2014,
+        "title": "The Stanford CoreNLP Natural Language Processing Toolkit",
+        "journal": "ACL",
+        "vol": "2014",
+        "pages": "55-60",
+        "doi": "10.3115/v1/P14-5010",
+        "key_finding": "Section detection and NLP processing for scholarly documents",
+        "relevance": "Tool for parsing XML and extracting structured sections"
     }
 }
 
@@ -262,6 +302,7 @@ with st.sidebar:
             "🎯 Executive Summary",
             "📊 Phase 1: Foundation & Data",
             "⚙️ Phase 2: Feature Engineering",
+            "📄 Phase 2B: XML Processing (NEW)",
             "🤖 Phase 3: NLP & RAG System",
             "📈 Phase 4: Statistical Models",
             "🔗 Phase 5: Integration",
@@ -275,6 +316,7 @@ with st.sidebar:
     st.info("""
     **Dashboard Features**:
     - ✓ Detailed steps for each phase
+    - ✓ XML Processing Workflow (New)
     - ✓ Academic references integrated
     - ✓ Implementation guidance
     - ✓ Challenges & solutions
@@ -778,6 +820,548 @@ elif page == "⚙️ Phase 2: Feature Engineering":
     })
     
     st.dataframe(deliverables_p2, use_container_width=True, hide_index=True)
+
+# ============================================================================
+# PAGE 4: PHASE 2B - XML PROCESSING (NEW SECTION)
+# ============================================================================
+
+elif page == "📄 Phase 2B: XML Processing (NEW)":
+    st.markdown('<div class="main-header">📄 Phase 2B: XML Processing Workflow (Weeks 5-8, Parallel)</div>', 
+                unsafe_allow_html=True)
+    
+    st.markdown("""
+    ## Overview: Why XML?
+    
+    XML processing provides:
+    - **Structured sections** (no need to detect headers manually)
+    - **Metadata extraction** (authors, title, abstract automatically)
+    - **High accuracy** (98.6% vs 70-80% for regex-based parsing)
+    - **Reproducibility** (standardized format)
+    - **Based on MOPRD gold standard** (Lin et al. 2022)
+    """)
+    
+    show_reference(36)  # MOPRD
+    show_reference(37)  # GROBID
+    show_reference(38)  # Stanford CoreNLP
+    
+    st.markdown("---")
+    
+    st.markdown("""
+    ## Week 5: GROBID Setup & Installation
+    """)
+    
+    st.markdown("""
+    <div class='xml-box'>
+    <h3>Task 5.1: Install GROBID Service</h3>
+    
+    <b>What is GROBID?</b>
+    - Machine-learned PDF parser for scholarly documents
+    - Converts PDF → Structured XML (JATS-like format)
+    - Extracts: Title, Authors, Abstract, Sections, References, Tables, Figures
+    - Accuracy: 98.6% on section identification
+    
+    <b>Installation (Linux/Mac):</b>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("""
+    ```bash
+    # Step 1: Download GROBID
+    wget https://github.com/kermitt2/grobid/releases/download/0.7.3/grobid-0.7.3.zip
+    unzip grobid-0.7.3.zip
+    cd grobid-0.7.3
+    
+    # Step 2: Build (requires Java 11+)
+    ./gradlew clean assemble
+    
+    # Step 3: Start service
+    ./gradlew run
+    
+    # Output: GROBID service running on http://localhost:8070
+    
+    # Step 4: Test on sample PDF
+    curl -X POST -F "input=@sample.pdf" http://localhost:8070/api/processFulltextDocument > output.xml
+    ```
+    """)
+    
+    st.markdown("""
+    <div class='methodology-box'>
+    <b>Expected Setup Time:</b> 15-20 minutes
+    
+    <b>System Requirements:</b>
+    - Java 11 or higher
+    - 2GB RAM minimum
+    - 1GB disk space for GROBID
+    
+    <b>Verification:</b>
+    - Test on 5 sample PDFs
+    - Check XML output quality
+    - Ensure all sections are extracted
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    st.markdown("""
+    ## Week 5-6: Batch PDF to XML Conversion
+    """)
+    
+    st.markdown("""
+    <div class='xml-box'>
+    <h3>Task 5.2: Convert All 250 PDFs to XML</h3>
+    
+    <b>Python Implementation:</b>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.code("""
+import requests
+import os
+from pathlib import Path
+from tqdm import tqdm
+import json
+
+class GROBIDConverter:
+    def __init__(self, grobid_url="http://localhost:8070"):
+        self.grobid_url = grobid_url
+        self.endpoint = f"{grobid_url}/api/processFulltextDocument"
+    
+    def pdf_to_xml(self, pdf_path, output_path, timeout=30):
+        \"\"\"
+        Convert single PDF to XML using GROBID
+        
+        Args:
+            pdf_path: Path to input PDF
+            output_path: Path to output XML
+            timeout: Request timeout in seconds
+        
+        Returns:
+            bool: True if successful, False otherwise
+        \"\"\"
+        try:
+            with open(pdf_path, 'rb') as pdf_file:
+                files = {'input': pdf_file}
+                response = requests.post(
+                    self.endpoint,
+                    files=files,
+                    timeout=timeout
+                )
+            
+            if response.status_code == 200:
+                with open(output_path, 'w', encoding='utf-8') as xml_file:
+                    xml_file.write(response.text)
+                return True
+            else:
+                print(f"Error: Status {response.status_code} for {pdf_path}")
+                return False
+        
+        except Exception as e:
+            print(f"Error processing {pdf_path}: {str(e)}")
+            return False
+    
+    def batch_convert(self, input_dir, output_dir):
+        \"\"\"
+        Batch convert all PDFs in a directory
+        
+        Args:
+            input_dir: Directory containing PDFs
+            output_dir: Directory for output XMLs
+        \"\"\"
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
+        
+        pdf_files = list(Path(input_dir).glob("*.pdf"))
+        success_count = 0
+        
+        for pdf_path in tqdm(pdf_files, desc="Converting PDFs to XML"):
+            xml_path = Path(output_dir) / (pdf_path.stem + ".xml")
+            
+            if self.pdf_to_xml(str(pdf_path), str(xml_path)):
+                success_count += 1
+        
+        total = len(pdf_files)
+        success_rate = (success_count / total * 100) if total > 0 else 0
+        
+        print(f"\\nConversion complete: {success_count}/{total} successful ({success_rate:.1f}%)")
+        
+        return {
+            'total': total,
+            'successful': success_count,
+            'failed': total - success_count,
+            'success_rate': success_rate
+        }
+
+# Usage
+converter = GROBIDConverter()
+results = converter.batch_convert("data/raw/pdfs", "data/xml")
+print(f"Results: {results}")
+    """, language="python")
+    
+    st.markdown("""
+    <div class='key-finding'>
+    <b>Expected Performance:</b>
+    - Speed: ~2-5 seconds per PDF
+    - Total time for 250 papers: ~15-20 minutes
+    - Success rate: >95% (some PDFs may be corrupted)
+    - Output: 250 XML files in data/xml/
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    st.markdown("""
+    ## Week 6: XML Parsing & Section Extraction
+    """)
+    
+    st.markdown("""
+    <div class='xml-box'>
+    <h3>Task 6.1: Parse GROBID XML and Extract Sections</h3>
+    
+    <b>GROBID XML Structure:</b>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.code("""<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Paper Title</title>
+      </titleStmt>
+    </fileDesc>
+  </teiHeader>
+  
+  <text>
+    <body>
+      <div type="abstract">
+        <p>Abstract text...</p>
+      </div>
+      
+      <div type="introduction">
+        <head>1. Introduction</head>
+        <p>Introduction text...</p>
+      </div>
+      
+      <div type="methods">
+        <head>2. Methods</head>
+        <p>Methods text...</p>
+      </div>
+      
+      <div type="results">
+        <head>3. Results</head>
+        <p>Results text...</p>
+      </div>
+      
+      <div type="discussion">
+        <head>4. Discussion</head>
+        <p>Discussion text...</p>
+      </div>
+    </body>
+    
+    <back>
+      <div type="references">
+        <listBibl>
+          <biblStruct>
+            <analytic>
+              <title>Reference Title</title>
+            </analytic>
+          </biblStruct>
+        </listBibl>
+      </div>
+    </back>
+  </text>
+</TEI>
+    """, language="xml")
+    
+    st.markdown("""
+    <b>Python XML Parser:</b>
+    """)
+    
+    st.code("""
+from lxml import etree
+import json
+from pathlib import Path
+
+class GROBIDXMLParser:
+    def __init__(self):
+        self.ns = {'tei': 'http://www.tei-c.org/ns/1.0'}
+    
+    def parse_xml(self, xml_path):
+        \"\"\"
+        Parse GROBID XML and extract sections
+        
+        Args:
+            xml_path: Path to GROBID XML file
+        
+        Returns:
+            dict: Extracted sections and metadata
+        \"\"\"
+        try:
+            tree = etree.parse(xml_path)
+            root = tree.getroot()
+        except Exception as e:
+            print(f"Error parsing {xml_path}: {str(e)}")
+            return None
+        
+        sections = {}
+        
+        # Extract title
+        title_elem = root.find('.//tei:titleStmt/tei:title', self.ns)
+        sections['title'] = title_elem.text if title_elem is not None else 'Unknown'
+        
+        # Extract abstract
+        abstract_elem = root.find('.//tei:abstract', self.ns)
+        if abstract_elem is not None:
+            abstract_text = ' '.join([
+                p.text for p in abstract_elem.findall('.//tei:p', self.ns)
+                if p.text
+            ])
+            sections['abstract'] = abstract_text
+        
+        # Extract body sections
+        body = root.find('.//tei:body', self.ns)
+        if body is not None:
+            for div in body.findall('.//tei:div', self.ns):
+                section_type = div.get('type', 'unknown')
+                head = div.find('.//tei:head', self.ns)
+                
+                # Get section title
+                if head is not None:
+                    section_title = head.text or section_type
+                else:
+                    section_title = section_type
+                
+                # Extract paragraph text
+                paragraphs = div.findall('.//tei:p', self.ns)
+                section_text = ' '.join([
+                    p.text for p in paragraphs if p.text
+                ])
+                
+                if section_text:
+                    sections[section_title.lower()] = section_text
+        
+        # Extract references
+        ref_list = root.find('.//tei:listBibl', self.ns)
+        if ref_list is not None:
+            refs = []
+            for bibstruct in ref_list.findall('.//tei:biblStruct', self.ns):
+                title_elem = bibstruct.find('.//tei:analytic/tei:title', self.ns)
+                author_elem = bibstruct.find('.//tei:author', self.ns)
+                
+                ref_info = {
+                    'title': title_elem.text if title_elem is not None else '',
+                    'author': author_elem.text if author_elem is not None else ''
+                }
+                refs.append(ref_info)
+            
+            sections['references_count'] = len(refs)
+            sections['references'] = refs
+        
+        return sections
+    
+    def batch_parse(self, xml_dir, output_dir):
+        \"\"\"
+        Batch parse all XML files
+        
+        Args:
+            xml_dir: Directory containing XML files
+            output_dir: Directory for JSON output
+        \"\"\"
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
+        
+        xml_files = list(Path(xml_dir).glob("*.xml"))
+        
+        for xml_path in xml_files:
+            sections = self.parse_xml(str(xml_path))
+            
+            if sections:
+                json_path = Path(output_dir) / (xml_path.stem + '.json')
+                with open(json_path, 'w', encoding='utf-8') as f:
+                    json.dump(sections, f, indent=2, ensure_ascii=False)
+        
+        print(f"Parsed {len(xml_files)} XML files -> JSON")
+
+# Usage
+parser = GROBIDXMLParser()
+parser.batch_parse("data/xml", "data/processed/sections")
+    """, language="python")
+    
+    st.markdown("---")
+    
+    st.markdown("""
+    ## Week 7: Create 3-Subset Segmentation (MOPRD Style)
+    """)
+    
+    st.markdown("""
+    <div class='xml-box'>
+    <h3>Task 7.1: Create t_sum, t_mr, t_full Subsets</h3>
+    
+    <b>MOPRD 3-Subset Strategy:</b>
+    
+    After parsing XML, segment each paper into 3 subsets for different purposes:
+    </div>
+    """, unsafe_allow_html=True)
+    
+    subset_table = pd.DataFrame({
+        "Subset": ["t_sum (Summary)", "t_mr (Methods+Results)", "t_full (Full)"],
+        "Sections Included": [
+            "Abstract, Intro, Conclusion",
+            "Methods, Results",
+            "All sections"
+        ],
+        "Purpose": [
+            "High-level manuscript quality",
+            "Methodological rigor assessment",
+            "Complete context for decision"
+        ],
+        "Use Case": [
+            "Feature extraction (Block A-C)",
+            "Statistical rigor features",
+            "RAG retrieval + NLP embeddings"
+        ]
+    })
+    
+    st.dataframe(subset_table, use_container_width=True, hide_index=True)
+    
+    st.markdown("""
+    <b>Implementation:</b>
+    """)
+    
+    st.code("""
+import json
+from pathlib import Path
+
+class SubsetCreator:
+    def __init__(self):
+        self.summary_keywords = [
+            'abstract', 'introduction', 'background',
+            'related work', 'conclusion', 'future work'
+        ]
+        self.methods_results_keywords = [
+            'methods', 'methodology', 'materials and methods',
+            'study design', 'data collection',
+            'results', 'findings', 'outcomes'
+        ]
+    
+    def create_subsets(self, sections_json):
+        \"\"\"
+        Create 3 subsets from extracted sections
+        
+        Args:
+            sections_json: dict with all extracted sections
+        
+        Returns:
+            dict: {t_sum, t_mr, t_full}
+        \"\"\"
+        t_sum_texts = []
+        t_mr_texts = []
+        all_texts = []
+        
+        for section_name, text in sections_json.items():
+            if section_name in ['title', 'abstract', 'references_count', 'references']:
+                continue  # Skip metadata
+            
+            all_texts.append(text)
+            
+            # Check if summary section
+            if any(kw in section_name.lower() for kw in self.summary_keywords):
+                t_sum_texts.append(text)
+            
+            # Check if methods/results section
+            if any(kw in section_name.lower() for kw in self.methods_results_keywords):
+                t_mr_texts.append(text)
+        
+        return {
+            't_sum': ' '.join(t_sum_texts),
+            't_mr': ' '.join(t_mr_texts),
+            't_full': ' '.join(all_texts)
+        }
+    
+    def batch_create_subsets(self, sections_dir, output_dir):
+        \"\"\"
+        Batch create subsets for all papers
+        
+        Args:
+            sections_dir: Directory with section JSON files
+            output_dir: Directory for subset JSON files
+        \"\"\"
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
+        
+        json_files = list(Path(sections_dir).glob("*.json"))
+        
+        for json_path in json_files:
+            with open(json_path, 'r', encoding='utf-8') as f:
+                sections = json.load(f)
+            
+            subsets = self.create_subsets(sections)
+            
+            # Add metadata
+            subsets['paper_id'] = json_path.stem
+            subsets['title'] = sections.get('title', 'Unknown')
+            
+            output_path = Path(output_dir) / (json_path.stem + '_subsets.json')
+            with open(output_path, 'w', encoding='utf-8') as f:
+                json.dump(subsets, f, indent=2, ensure_ascii=False)
+        
+        print(f"Created subsets for {len(json_files)} papers")
+
+# Usage
+creator = SubsetCreator()
+creator.batch_create_subsets("data/processed/sections", "data/processed/subsets")
+    """, language="python")
+    
+    st.markdown("---")
+    
+    st.markdown("""
+    ## Week 8: Validation & Quality Control
+    """)
+    
+    st.markdown("""
+    <div class='xml-box'>
+    <h3>Task 8.1: XML Quality Validation</h3>
+    
+    <b>Validation Checklist:</b>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    validation_checklist = pd.DataFrame({
+        "Check": [
+            "XML well-formed",
+            "Section extraction",
+            "Missing sections",
+            "Text length",
+            "Subset creation",
+            "Output consistency"
+        ],
+        "Method": [
+            "XML parser validates structure",
+            "Count sections extracted",
+            "Flag papers missing key sections",
+            "t_full > t_sum > t_mr (expected)",
+            "Verify 3 subsets created",
+            "Verify all papers have all subsets"
+        ],
+        "Target": [
+            "100% valid",
+            ">4 sections per paper",
+            "<5% missing critical sections",
+            "Expected inequality holds",
+            "100% completion",
+            "Zero inconsistencies"
+        ]
+    })
+    
+    st.dataframe(validation_checklist, use_container_width=True, hide_index=True)
+    
+    st.markdown("""
+    <div class='key-finding'>
+    <b>Expected QC Results After Phase 2B:</b>
+    - 250 XML files (from PDFs)
+    - 250 section JSON files (from XML parsing)
+    - 250 subset JSON files (t_sum, t_mr, t_full)
+    - Quality report with validation metrics
+    - Total time: ~5-8 hours (mostly automated)
+    </div>
+    """, unsafe_allow_html=True)
 
 # ============================================================================
 # PAGE 4: PHASE 3 - NLP & RAG SYSTEM
