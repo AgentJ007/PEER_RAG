@@ -1,0 +1,22 @@
+{
+    "effect_size_present": {
+        "mean": 0.5,
+        "std": 0.5
+    },
+    "stat_density": {
+        "mean": 0.1,
+        "std": 0.05
+    },
+    "sample_size_justified": {
+        "mean": 0.5,
+        "std": 0.5
+    },
+    "feature_1": {
+        "mean": 0.0,
+        "std": 1.0
+    },
+    "feature_2": {
+        "mean": 0.0,
+        "std": 1.0
+    }
+}

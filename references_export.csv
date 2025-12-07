@@ -1,0 +1,13 @@
+ID,Author,Year,Title,Journal,DOI,Key_Finding,Relevance_Tag
+1,Cicchetti DV,1991,The reliability of peer review for manuscript and grant submissions,Journal of the American Academy of Child & Adolescent Psychiatry,10.1097/00004583-199105000-00014,κ=0.45-0.65 inter-rater agreement,PeerReview_Reliability
+2,Pier EL et al.,2018,Low agreement among reviewers evaluating the same NIH grant applications,Proceedings of the National Academy of Sciences,10.1073/pnas.1714145115,Only 32% agreement on top quartile,PeerReview_Consistency
+3,Helgesson G; Eriksson S,2018,Reporting and investigating peer review fraud,Nature Medicine,10.1038/s41591-018-0182-8,Systematic biases and fraud documented,PeerReview_Integrity
+6,Devlin J et al.,2019,BERT: Pre-training of Deep Bidirectional Transformers,NAACL,10.18653/v1/N19-1423,Foundation for modern NLP,NLP_Foundation
+7,Beltagy I; Lo K; Cohan A,2019,SciBERT: A Pretrained Language Model for Scientific Text,EMNLP,10.18653/v1/D19-1371,92.1% F1 on citation intent,NLP_Scientific
+12,Lewis P et al.,2020,Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks,NeurIPS,arXiv:2005.11401,5-15% improvement over baseline,RAG_Methodology
+16,McCullagh P,1980,Regression Models for Ordinal Data,Journal of the Royal Statistical Society Series B,10.1111/j.2517-6161.1980.tb01109.x,Proportional odds model foundation,Ordinal_Regression
+18,Efron B,1979,Bootstrap Methods: Another Look at the Jackknife,The Annals of Statistics,10.1214/aos/1176344552,Bootstrap resampling for uncertainty,Bootstrap_CI
+20,Gneiting T; Raftery AE,2007,Strictly Proper Scoring Rules Prediction and Estimation,Journal of the American Statistical Association,10.1198/016214506000001437,Brier score proper scoring rule,Model_Calibration
+24,Vandenbroucke JP et al.,2007,Strengthening the Reporting of Observational Studies in Epidemiology (STROBE),PLoS Medicine,10.1371/journal.pmed.0040297,22-item checklist for study design,Study_Design_Standards
+27,Flesch R,1948,A New Readability Yardstick,Journal of Applied Psychology,10.1037/h0057532,Flesch-Kincaid grade level formula,Readability_Metrics
+29,Kohavi R,1995,A Study of Cross-Validation and Bootstrap for Accuracy Estimation,IJCAI,cs/9605103,5-fold CV recommended for small datasets,Validation_Methodology

@@ -1,0 +1,13 @@
+streamlit
+plotly
+pandas
+numpy
+scikit-learn
+statsmodels
+scipy
+sentence-transformers
+torch
+qdrant-client
+spacy
+pdfplumber
+transformers
