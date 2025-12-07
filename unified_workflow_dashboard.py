@@ -1673,7 +1673,7 @@ elif page == "📋 References & Resources":
     - Publication Manual (APA 7th): https://apastyle.apa.org
     
     ### Code Examples
-    - Feature Extraction: GitHub.com/[user]/peerj-predictor
+    - Feature Extraction: https://github.com/AgentJ007/PEER_RAG
     - RAG Implementation: github.com/facebookresearch/contriever
     - Ordinal Regression: github.com/statsmodels/statsmodels
     """)
